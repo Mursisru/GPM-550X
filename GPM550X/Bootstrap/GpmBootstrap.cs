@@ -265,16 +265,23 @@ namespace Gpm
         {
             if (enc.weaponMounts == null || def?.unitPrefab == null)
                 return;
+
+            List<WeaponMount> donors = new List<WeaponMount>();
             foreach (WeaponMount w in enc.weaponMounts)
             {
                 if (w == null || w.prefab == null || !PrefabFactory.IsAshm300SlotKey(w.jsonKey))
                     continue;
+                donors.Add(w);
+            }
+
+            foreach (WeaponMount donor in donors)
+            {
                 RegisterClone(
                     enc,
-                    w,
+                    donor,
                     def,
                     info,
-                    PrefabFactory.MountKeyFromDonor(w.jsonKey, GpmConstants.Ashm300SlotPrefix),
+                    PrefabFactory.MountKeyFromDonor(donor.jsonKey, GpmConstants.Ashm300SlotPrefix),
                     keepAll: true);
             }
         }

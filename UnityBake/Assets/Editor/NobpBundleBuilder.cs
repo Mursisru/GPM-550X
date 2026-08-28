@@ -106,7 +106,7 @@ namespace Gpm.UnityBake
 @"{
   ""modName"": ""GPM550X"",
   ""schemaVersion"": 3,
-  ""modVersion"": ""0.0.0"",
+  ""modVersion"": ""1.0.0"",
   ""Patches"": [],
   ""Ops"": [],
   ""Addressables"": []

@@ -1,6 +1,6 @@
 # GPM-550X
 
-[![Version](https://img.shields.io/badge/version-0.0.0-blue)](https://github.com/Mursisru/GPM-550X)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/Mursisru/GPM-550X/releases/tag/1.0.0)
 [![BepInEx](https://img.shields.io/badge/BepInEx-5-green)](https://docs.bepinex.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 

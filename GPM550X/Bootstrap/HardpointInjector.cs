@@ -48,18 +48,8 @@ namespace Gpm.Bootstrap
                     if (set == null)
                         continue;
                     set.weaponOptions ??= new List<WeaponMount>();
-                    WeaponMount? ashm = FindAshm300Option(set.weaponOptions);
-                    if (ashm != null)
-                    {
-                        if (string.IsNullOrEmpty(ashm.jsonKey) ||
-                            !slotClones.TryGetValue(ashm.jsonKey, out WeaponMount clone) || clone == null)
-                            continue;
-                        if (ContainsRef(set.weaponOptions, clone))
-                            continue;
-                        set.weaponOptions.Add(clone);
-                        ashmSets++;
+                    if (InjectAshm300Clones(set.weaponOptions, slotClones, ref ashmSets))
                         continue;
-                    }
 
                     if (!HasGpoOption(set.weaponOptions) || gpoSingle == null)
                         continue;
@@ -76,14 +66,28 @@ namespace Gpm.Bootstrap
             }
         }
 
-        private static WeaponMount? FindAshm300Option(List<WeaponMount> options)
+        private static bool InjectAshm300Clones(
+            List<WeaponMount> options,
+            Dictionary<string, WeaponMount> slotClones,
+            ref int ashmSets)
         {
-            foreach (WeaponMount o in options)
+            bool any = false;
+            for (int i = 0; i < options.Count; i++)
             {
-                if (o != null && PrefabFactory.IsAshm300SlotKey(o.jsonKey))
-                    return o;
+                WeaponMount? o = options[i];
+                if (o == null || string.IsNullOrEmpty(o.jsonKey))
+                    continue;
+                if (!PrefabFactory.IsAshm300SlotKey(o.jsonKey))
+                    continue;
+                if (!slotClones.TryGetValue(o.jsonKey, out WeaponMount? clone) || clone == null)
+                    continue;
+                if (ContainsRef(options, clone))
+                    continue;
+                options.Add(clone);
+                ashmSets++;
+                any = true;
             }
-            return null;
+            return any;
         }
 
         private static bool HasGpoOption(List<WeaponMount> options)

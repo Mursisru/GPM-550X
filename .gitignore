@@ -16,3 +16,4 @@ UnityBake/BakeLog*.txt
 .cursorrules
 *.log
 _tmp_*.py
+_release_staging/
