@@ -324,8 +324,29 @@ namespace Gpm.Bootstrap
 
         internal static bool IsAshm300SlotKey(string? jsonKey)
         {
-            return !string.IsNullOrEmpty(jsonKey) &&
-                   jsonKey!.StartsWith(GpmConstants.Ashm300SlotPrefix, StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrEmpty(jsonKey) ||
+                !jsonKey!.StartsWith(GpmConstants.Ashm300SlotPrefix, StringComparison.OrdinalIgnoreCase))
+                return false;
+            if (jsonKey.IndexOf("_RC", StringComparison.OrdinalIgnoreCase) >= 0)
+                return false;
+            return true;
+        }
+
+        internal static bool IsInternalBayMountKey(string? jsonKey)
+        {
+            if (jsonKey is not { Length: > 0 } key || !IsOurMountKey(key))
+                return false;
+            string suffix = key.Substring(GpmConstants.MountKeyPrefix.Length);
+            return suffix.StartsWith("internal", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static bool IsInternalBayDonor(string? donorKey, WeaponMount? donor)
+        {
+            if (donor != null && donor.missileBay)
+                return true;
+            if (donorKey is not { Length: > 0 } key)
+                return false;
+            return key.IndexOf("internal", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         internal static bool IsTuskoKey(string? jsonKey)

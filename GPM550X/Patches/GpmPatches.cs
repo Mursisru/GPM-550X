@@ -6,11 +6,22 @@ using UnityEngine;
 
 namespace Gpm.Patches
 {
+    [HarmonyPatch(typeof(WeaponManager), nameof(WeaponManager.InitializeWeaponManager))]
+    internal static class GpmWeaponManagerInitPatch
+    {
+        private static void Prefix(WeaponManager __instance)
+        {
+            HardpointInjector.EnsureRuntime(__instance);
+        }
+    }
+
     [HarmonyPatch(typeof(Hardpoint), nameof(Hardpoint.SpawnMount))]
     internal static class GpmSpawnMountPatch
     {
-        private static void Prefix(WeaponMount weaponMount)
+        private static void Prefix(Aircraft aircraft, WeaponMount weaponMount)
         {
+            if (aircraft?.weaponManager != null)
+                HardpointInjector.EnsureRuntime(aircraft.weaponManager);
             if (!GpmBootstrap.IsOurMount(weaponMount) || weaponMount.prefab == null)
                 return;
             WeaponInfo? shared = GpmBootstrap.Info ?? weaponMount.info;
@@ -39,8 +50,10 @@ namespace Gpm.Patches
                 PrefabFactory.FreezeTemplatePhysics(weaponMount.prefab);
                 weaponMount.prefab.SetActive(false);
             }
-            bool bay = __instance != null && __instance.bayDoors != null && __instance.bayDoors.Length > 0;
+            bool bay = GpmBayUtil.ShouldTreatAsBay(__instance, weaponMount);
             PrefabFactory.ActivateMountedInstance(__result, bay);
+            if (bay)
+                GpmBayUtil.HideHardpointPylons(__instance);
         }
     }
 

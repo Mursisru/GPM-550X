@@ -13,6 +13,8 @@ namespace Gpm
     internal static class GpmBootstrap
     {
         private static bool _done;
+        private static bool _bootstrapping;
+        internal static bool IsReady => _done;
         internal static MissileDefinition? Definition { get; private set; }
         internal static WeaponInfo? Info { get; private set; }
         internal static WeaponMount? GpoSingleMount { get; private set; }
@@ -29,9 +31,17 @@ namespace Gpm
 
         internal static IEnumerator Run(Encyclopedia enc)
         {
-            if (_done || enc == null)
+            if (enc == null)
                 yield break;
+            if (_bootstrapping)
+                yield break;
+            if (_done)
+            {
+                HardpointInjector.Inject(enc, SlotClones, GpoSingleMount);
+                yield break;
+            }
 
+            _bootstrapping = true;
             yield return BlueprinterGate.WaitUntilReady();
 
             try
@@ -78,6 +88,10 @@ namespace Gpm
             catch (Exception ex)
             {
                 GpmPlugin.ModLog?.LogError($"GpmBootstrap: {ex}");
+            }
+            finally
+            {
+                _bootstrapping = false;
             }
         }
 
@@ -342,7 +356,10 @@ namespace Gpm
                 ammo = 1;
             mount.ammo = ammo;
             mount.mass = mount.emptyMass + GpmConstants.LaunchMassKg * ammo;
-            mount.RCS = GpmConstants.RadarSize;
+            if (PrefabFactory.IsInternalBayDonor(donorKey, donor))
+                GpmBayUtil.ApplyInternalBayScalars(mount);
+            else
+                mount.RCS = GpmConstants.RadarSize;
 
             if (!string.Equals(donor.jsonKey, donorKey, StringComparison.Ordinal))
                 GpmPlugin.ModLog?.LogError($"Tusko mount donor mutated: {donor.jsonKey}");
@@ -386,6 +403,10 @@ namespace Gpm
             if (def.unitPrefab != null)
                 info.weaponPrefab = def.unitPrefab;
             BindMountedInfo(mount, info);
+            if (PrefabFactory.IsInternalBayMountKey(mount.jsonKey))
+                GpmBayUtil.ApplyInternalBayScalars(mount);
+            else
+                mount.RCS = GpmConstants.RadarSize;
         }
 
         private static void StampAllMounted(GameObject mountGo)

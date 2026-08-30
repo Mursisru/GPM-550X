@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.1] - 2026-08-30
+
+### Fixed
+
+- **Internal weapon bays:** exclude MissileCamera `_RC*` mount clones from loadout; suppress aircraft RCS spike (`emptyRCS=0`, bay RCS patches); hide generic ETOS pylons; bay visuals until fire.
+- **GPO-500 mounts:** `EnsureRuntime` syncs injected options onto live aircraft; bootstrap re-inject after encyclopedia reload; AShM1* sets keep qty clones only, GPO-only sets get 1× on Vortex / Ifrit / Revoker.
+
 ## [1.0.0] - 2026-08-28
 
 ### Added
@@ -32,4 +39,5 @@ All notable changes to this project are documented here.
 - Hardpoint bootstrap crash when cloning AShM-300 mount templates (`Collection was modified` during encyclopedia iteration).
 - Inject all AShM-300 quantity options per hardpoint set (e.g. both x2 and x4 variants).
 
+[1.0.1]: https://github.com/Mursisru/GPM-550X/releases/tag/1.0.1
 [1.0.0]: https://github.com/Mursisru/GPM-550X/releases/tag/1.0.0

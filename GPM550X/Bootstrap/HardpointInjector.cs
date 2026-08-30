@@ -12,8 +12,8 @@ namespace Gpm.Bootstrap
                 return;
             if (gpoSingle != null && PrefabFactory.IsTuskoKey(gpoSingle.jsonKey))
             {
-                GpmPlugin.ModLog?.LogError("Refusing inject: GPO-single mount still has AShM3 jsonKey.");
-                return;
+                GpmPlugin.ModLog?.LogError("GPO-single mount has AShM3 jsonKey — skipping GPO inject only.");
+                gpoSingle = null;
             }
 
             int ashmSets = 0;
@@ -27,6 +27,29 @@ namespace Gpm.Bootstrap
             }
             GpmPlugin.ModLog?.LogInfo(
                 $"HardpointInjector: AShM-300-qty sets={ashmSets} GPO-only 1x sets={gpoSets} GPO-skipped={gpoSkipped}.");
+        }
+
+        internal static void EnsureRuntime(WeaponManager wm)
+        {
+            if (wm == null || !GpmBootstrap.IsReady)
+                return;
+            Aircraft? aircraft = wm.GetComponent<Aircraft>();
+            if (aircraft?.definition?.unitPrefab == null)
+                return;
+            WeaponManager? template = aircraft.definition.unitPrefab.GetComponent<Aircraft>()?.weaponManager;
+            if (template?.hardpointSets == null || wm.hardpointSets == null)
+                return;
+
+            int count = Math.Min(wm.hardpointSets.Length, template.hardpointSets.Length);
+            for (int i = 0; i < count; i++)
+            {
+                HardpointSet? live = wm.hardpointSets[i];
+                HardpointSet? def = template.hardpointSets[i];
+                if (live == null || def?.weaponOptions == null)
+                    continue;
+                live.weaponOptions ??= new List<WeaponMount>();
+                MergeOurMounts(live.weaponOptions, def.weaponOptions);
+            }
         }
 
         private static void InjectOnPrefab(
@@ -48,7 +71,8 @@ namespace Gpm.Bootstrap
                     if (set == null)
                         continue;
                     set.weaponOptions ??= new List<WeaponMount>();
-                    if (InjectAshm300Clones(set.weaponOptions, slotClones, ref ashmSets))
+                    InjectAshm300Clones(set.weaponOptions, slotClones, ref ashmSets);
+                    if (HasAshm300SlotOption(set.weaponOptions))
                         continue;
 
                     if (!HasGpoOption(set.weaponOptions) || gpoSingle == null)
@@ -66,12 +90,11 @@ namespace Gpm.Bootstrap
             }
         }
 
-        private static bool InjectAshm300Clones(
+        private static void InjectAshm300Clones(
             List<WeaponMount> options,
             Dictionary<string, WeaponMount> slotClones,
             ref int ashmSets)
         {
-            bool any = false;
             for (int i = 0; i < options.Count; i++)
             {
                 WeaponMount? o = options[i];
@@ -85,9 +108,29 @@ namespace Gpm.Bootstrap
                     continue;
                 options.Add(clone);
                 ashmSets++;
-                any = true;
             }
-            return any;
+        }
+
+        private static bool HasAshm300SlotOption(List<WeaponMount> options)
+        {
+            foreach (WeaponMount o in options)
+            {
+                if (o != null && PrefabFactory.IsAshm300SlotKey(o.jsonKey))
+                    return true;
+            }
+            return false;
+        }
+
+        private static void MergeOurMounts(List<WeaponMount> live, List<WeaponMount> template)
+        {
+            for (int i = 0; i < template.Count; i++)
+            {
+                WeaponMount? m = template[i];
+                if (m == null || !PrefabFactory.IsOurMountKey(m.jsonKey))
+                    continue;
+                if (!ContainsRef(live, m))
+                    live.Add(m);
+            }
         }
 
         private static bool HasGpoOption(List<WeaponMount> options)
