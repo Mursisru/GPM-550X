@@ -16,21 +16,30 @@ namespace Gpm.Patches
         }
     }
 
+    [HarmonyPatch(typeof(PatchRunner), nameof(PatchRunner.ApplyAllOps))]
+    internal static class BlueprinterOpsAppliedPatch
+    {
+        private static void Postfix() => BlueprinterGate.MarkOpsApplied();
+    }
+
     internal static class BlueprinterGate
     {
+        private static bool _opsApplied;
+
+        internal static void MarkOpsApplied() => _opsApplied = true;
+
         internal static IEnumerator WaitUntilReady()
         {
             float timeout = 120f;
             float t = 0f;
             while (t < timeout)
             {
-                Plugin? bp = Plugin.Instance;
-                if (bp != null && bp.PatchingComplete)
+                if (_opsApplied)
                     yield break;
                 t += Time.unscaledDeltaTime;
                 yield return null;
             }
-            GpmPlugin.ModLog?.LogWarning("Blueprinter PatchingComplete timeout — continuing bootstrap.");
+            GpmPlugin.ModLog?.LogWarning("Blueprinter ApplyAllOps timeout — continuing bootstrap.");
         }
     }
 }

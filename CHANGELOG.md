@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [1.0.2] - 2026-09-01
+
+### Changed
+
+- **Blueprinter 2.0.1:** bootstrap waits `PatchRunner.ApplyAllOps` instead of removed `PatchingComplete`; build references `Blueprinter_2.0.1.dll`.
+
+> [!IMPORTANT]
+> Requires **[Blueprinter 2.0.1+](https://github.com/nikkorap/NOBlueprinter-Releases)**. Remove legacy `BepInEx/plugins/Blueprinter.dll` (1.8.x) if both are installed.
+
 ## [1.0.1] - 2026-08-30
 
 ### Fixed
